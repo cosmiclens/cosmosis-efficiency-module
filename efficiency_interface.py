@@ -5,13 +5,8 @@ import numpy as np
 from scipy.special import gammaincinv
 from scipy.stats import gamma as gammadist
 from scipy.integrate import solve_ivp
-from astropy.cosmology import FlatLambdaCDM, z_at_value
+from astropy.cosmology import FlatLambdaCDM
 
-
-def z_from_x(x, cosmo, ztol):
-    if x > 0:
-        return z_at_value(cosmo.comoving_distance, x, ztol=ztol)
-    return 0
 
 def gammapdf(x, alpha, beta=1.):
     '''Compute the gamma distribution PDF with parameters alpha, beta.'''
@@ -20,7 +15,6 @@ def gammapdf(x, alpha, beta=1.):
 def setup(options):
     nbin = options.get_int(option_section, 'nbin')
     nz = options.get_int(option_section, 'nz')
-    ztol = options.get_double(option_section, 'ztol', default=0.01)
     in_section = options.get_string(option_section, 'input_section', default=names.number_density_params)
     out_section = options.get_string(option_section, 'output_section', default=names.wl_number_density)
 
@@ -34,10 +28,10 @@ def setup(options):
     print('using {} redshift bins'.format(nz))
     print('fixed cosmology: Om0 = {}, H0 = {}'.format(Om0, H0))
 
-    return nbin, p, ztol, Om0, H0, in_section, out_section
+    return nbin, p, Om0, H0, in_section, out_section
 
 def execute(block, config):
-    nbin, p, ztol, Om0, H0, params, nz_section = config
+    nbin, p, Om0, H0, params, nz_section = config
 
     if Om0 < 0:
         Om0 = block['cosmological_parameters', 'omega_m']
@@ -94,9 +88,7 @@ def execute(block, config):
 
     dH = cosmo.hubble_distance.to('Mpc')
 
-    dz_dx = lambda x, z: cosmo.efunc(z)/dH
-
-    sol = solve_ivp(dz_dx, (0, x[-1]), y0=[0], t_eval=x)
+    sol = solve_ivp(lambda x, z: cosmo.efunc(z)/dH, (0, x[-1]), y0=[0], t_eval=x)
 
     if not sol.success:
         raise RuntimeError('failed to invert comoving distance')
