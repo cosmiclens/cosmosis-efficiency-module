@@ -91,7 +91,11 @@ def execute(block, config):
     sol = solve_ivp(lambda x, z: cosmo.efunc(z)/dH, (0, x[-1]), y0=[0], t_eval=x)
 
     if not sol.success:
-        raise RuntimeError('failed to invert comoving distance')
+        print('failed to invert comoving distance:', sol.message)
+        print('requested x range:', x[0], 'to', x[-1])
+        print('obtained x range:', sol.t[0], 'to', sol.t[-1])
+        print('obtained z range:', sol.y[0, 0], 'to', sol.y[0, -1])
+        return 2
 
     x, z  = sol.t, sol.y[0]
     dx_dz = dH.value*cosmo.inv_efunc(z)
