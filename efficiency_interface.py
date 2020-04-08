@@ -15,7 +15,7 @@ def gammapdf(x, alpha, beta=1.):
 def setup(options):
     nbin = options.get_int(option_section, 'nbin')
     nz = options.get_int(option_section, 'nz')
-    in_section = options.get_string(option_section, 'input_section', default=names.number_density_params)
+    in_section = options.get_string(option_section, 'input_section', default='efficiency_parameters')
     out_section = options.get_string(option_section, 'output_section', default=names.wl_number_density)
 
     p = np.linspace(0, 1, nz, endpoint=False)
